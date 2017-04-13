@@ -1,7 +1,6 @@
 package com.example.android.basicnotifications;
 
 import android.app.Activity;
-import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Intent;
 import android.graphics.BitmapFactory;
@@ -9,6 +8,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
+import android.support.v4.app.RemoteInput;
 import android.view.View;
 
 /**
@@ -43,11 +43,44 @@ public class MainActivity extends Activity {
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
         // END_INCLUDE(build_action)
 
+        int thisConversationId = 42;
+        Intent msgHeardIntent = new Intent()
+                .addFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES)
+                .setAction("com.example.android.basicnotifications.MY_ACTION_MESSAGE_HEARD")
+                .putExtra("conversation_id", thisConversationId);
+
+        PendingIntent msgHeardPendingIntent = PendingIntent.getBroadcast(getApplicationContext(),
+                thisConversationId, msgHeardIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        Intent msgReplyIntent = new Intent()
+                .addFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES)
+                .setAction("com.example.android.basicnotifications.MY_ACTION_MESSAGE_REPLY")
+                .putExtra("conversation_id", thisConversationId);
+
+        PendingIntent msgReplyPendingIntent = PendingIntent.getBroadcast(getApplicationContext(),
+                thisConversationId, msgReplyIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        RemoteInput remoteInput = new RemoteInput.Builder("voice_reply_key")
+                .setLabel("Prompt Text")
+                .build();
+
+        String conversationName = "Navendu Agarwal";
+        NotificationCompat.CarExtender.UnreadConversation.Builder unreadConvBuilder =
+                new NotificationCompat.CarExtender.UnreadConversation.Builder(conversationName)
+                        .setReadPendingIntent(msgHeardPendingIntent)
+                        .setReplyAction(msgReplyPendingIntent, remoteInput);
+
+        unreadConvBuilder.addMessage("Hello there, how are you?")
+                .setLatestTimestamp(System.currentTimeMillis());
+
+
         // BEGIN_INCLUDE (build_notification)
         /**
          * Use NotificationCompat.Builder to set up our notification.
          */
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this);
+
+        builder.extend(new NotificationCompat.CarExtender().setUnreadConversation(unreadConvBuilder.build()));
 
         /** Set the icon that will appear in the notification bar. This icon also appears
          * in the lower right hand corner of the notification itself.

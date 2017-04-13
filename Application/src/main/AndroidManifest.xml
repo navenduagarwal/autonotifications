@@ -39,7 +39,7 @@
         </activity>
 
         <receiver
-            android:name=".MyMessageHeaderReceiver"
+            android:name=".MyMessageHeardReceiver"
             android:enabled="true"
             android:exported="true">
             <intent-filter>
